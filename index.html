@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREEN-API Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            margin-right: 20px;
+        }
+        .controls input,
+        .controls button {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+        }
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+        .output-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .output {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <input type="text" id="idInstance" placeholder="idInstance">
+            <input type="text" id="apiTokenInstance" placeholder="ApiTokenInstance">
+
+            <button id="getSettingsBtn">getSettings</button>
+            <button id="getStateInstanceBtn">getStateInstance</button>
+
+            <input type="text" id="phoneNumber" placeholder="Номер телефона">
+            <input type="text" id="message" placeholder="Впишите текст">
+            <button id="sendMessageBtn">sendMessage</button>
+
+            <input type="text" id="fileUrlPhoneNumber" placeholder="Номер телефона">
+            <input type="text" id="fileUrl" placeholder="Ссылка на файл">
+            <button id="sendFileByUrlBtn">sendFileByUrl</button>
+        </div>
+
+        <div class="right-panel">
+            <div class="output-title">Ответ:</div>
+            <div class="output" id="output"></div>
+        </div>
+    </div>
+
+    <script>
+        function callApi(method, isGet = false, body = {}) {
+            const idInstance = document.getElementById('idInstance').value;
+            const apiTokenInstance = document.getElementById('apiTokenInstance').value;
+
+            const url = `https://api.green-api.com/waInstance${idInstance}/${method}/${apiTokenInstance}`;
+            
+            fetch(url, {
+                method: isGet ? 'GET' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: isGet ? null : JSON.stringify(body)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                document.getElementById('output').textContent = 'Произошла ошибка при вызове API.';
+            });
+        }
+
+        document.getElementById('getSettingsBtn').addEventListener('click', () => {
+            callApi('getSettings', true);
+        });
+
+        document.getElementById('getStateInstanceBtn').addEventListener('click', () => {
+            callApi('getStateInstance', true);
+        });
+
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+            const body = {
+                chatId: document.getElementById('phoneNumber').value + '@c.us',
+                message: document.getElementById('message').value
+            };
+            callApi('sendMessage', false, body);
+        });
+
+        document.getElementById('sendFileByUrlBtn').addEventListener('click', () => {
+            const body = {
+                chatId: document.getElementById('fileUrlPhoneNumber').value + '@c.us',
+                urlFile: document.getElementById('fileUrl').value,
+                fileName: 'NameFile'
+            };
+            callApi('sendFileByUrl', false, body);
+        });
+    </script>
+</body>
+</html>
